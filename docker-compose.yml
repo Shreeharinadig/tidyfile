@@ -11,6 +11,9 @@ services:
       POSTGRES_DB: tidyfile
       POSTGRES_USER: ${DB_ADMIN_USER:-tidyfile_admin}
       POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:-tidyfile_admin}
+      # Read by infra/postgres/init/01-app-role.sh to create the app role.
+      DB_APP_USER: ${DB_APP_USER:-tidyfile_app}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-tidyfile_app}
     ports:
       - "5432:5432"
     volumes:
