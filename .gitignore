@@ -1,0 +1,20 @@
+.env
+*.pem
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Java
+api/target/
+*.class
+
+# Generated benchmark data (recreate with `make data`)
+benchmark/data/
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store

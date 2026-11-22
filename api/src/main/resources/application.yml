@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: tidyfile-api
+  datasource:
+    # The application connects as a non-superuser role so row-level security applies.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/tidyfile}
+    username: ${DB_APP_USER:tidyfile_app}
+    password: ${DB_APP_PASSWORD:tidyfile_app}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+    # Migrations run as the owner role, which creates the tables.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/tidyfile}
+    user: ${DB_ADMIN_USER:tidyfile_admin}
+    password: ${DB_ADMIN_PASSWORD:tidyfile_admin}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+server:
+  port: 8080

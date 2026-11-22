@@ -1,0 +1,55 @@
+name: tidyfile
+
+# Base stack. For local development add the AWS emulator override:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
+# (`make up` does this.) On a real server, run this file alone with a real AWS role.
+
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: tidyfile
+      POSTGRES_USER: ${DB_ADMIN_USER:-tidyfile_admin}
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:-tidyfile_admin}
+    ports:
+      - "5432:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_ADMIN_USER:-tidyfile_admin} -d tidyfile"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/tidyfile
+      DB_ADMIN_USER: ${DB_ADMIN_USER:-tidyfile_admin}
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD:-tidyfile_admin}
+      DB_APP_USER: ${DB_APP_USER:-tidyfile_app}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-tidyfile_app}
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+    ports:
+      - "8080:8080"
+
+  worker:
+    build: ./worker
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_APP_USER: ${DB_APP_USER:-tidyfile_app}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD:-tidyfile_app}
+      AWS_REGION: ${AWS_REGION:-ap-south-1}
+      JOBS_QUEUE_NAME: tidyfile-jobs
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-}
+
+volumes:
+  dbdata:
